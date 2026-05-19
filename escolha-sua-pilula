@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Matrix - Escolha sua Pílula</title>
+    <style>
+        /* CONFIGURAÇÕES GERAIS */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
+        body, html { height: 100%; background-color: #000; color: #00ff41; overflow: hidden; }
+
+        .matrix-container { 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            text-align: center; 
+            padding: 15px; 
+            transition: background-color 0.8s ease;
+        }
+
+        .screen { 
+            max-width: 650px; 
+            width: 100%; 
+            background: rgba(5, 5, 5, 0.9); 
+            border: 1px solid #00ff41; 
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2); 
+            border-radius: 8px; 
+            padding: 30px 20px; /* Reduzido para caber melhor em telas de celular */
+            z-index: 10;
+            transition: all 0.8s ease;
+        }
+
+        h1 { font-size: 20px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; color: #00ff41; text-shadow: 0 0 8px rgba(0, 255, 65, 0.6); }
+        p { font-size: 15px; line-height: 1.5; margin-bottom: 18px; color: #ccffdd; text-align: justify; }
+
+        /* BOTÕES */
+        .pill-box { display: flex; justify-content: center; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
+        .pill-btn { padding: 12px 25px; font-size: 15px; font-weight: bold; text-transform: uppercase; border: none; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; min-width: 150px; font-family: inherit; color: #fff; }
+        
+        .pill-blue { background-color: #0055ff; border: 2px solid #0033aa; }
+        .pill-blue:hover { background-color: #0077ff; box-shadow: 0 0 20px #0055ff; transform: scale(1.05); }
+        
+        .pill-red { background-color: #ff1111; border: 2px solid #aa0000; }
+        .pill-red:hover { background-color: #ff4444; box-shadow: 0 0 20px #ff1111; transform: scale(1.05); }
+
+        .hidden { display: none !important; }
+
+        /* ========================================== */
+        /* TEMA DA PÍLULA AZUL AJUSTADO (MAIS AZUL)  */
+        /* ========================================== */
+        .blue-theme { 
+            background-color: #a4c2db !important; 
+        }
+        .blue-theme .screen { 
+            background: #d6e4f0; 
+            border: 3px solid #0044cc; 
+            box-shadow: 0 15px 35px rgba(0, 68, 204, 0.3); 
+            color: #002266; 
+            padding: 25px 20px; /* Compactado para o botão subir */
+        }
+        .blue-theme h1 { 
+            color: #0044cc; 
+            text-shadow: none; 
+            border-bottom: 2px solid #0044cc; 
+            padding-bottom: 8px; 
+            margin-bottom: 15px;
+        }
+        .blue-theme p { 
+            color: #003380; 
+            margin-bottom: 12px; /* Margem menor entre parágrafos */
+        }
+        .blue-theme .back-btn { 
+            color: #0044cc; 
+            border: 2px solid #0044cc; 
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .blue-theme .back-btn:hover {
+            background-color: #0044cc;
+            color: #ffffff;
+        }
+
+        /* TEMA PÍLULA VERMELHA */
+        .red-theme h1 { color: #ff1111; text-shadow: 0 0 10px #ff1111; }
+        .red-theme .screen { border: 1px solid #ff1111; box-shadow: 0 0 30px rgba(255, 17, 17, 0.3); padding: 25px 20px; }
+        .red-theme p { color: #ffcccc; margin-bottom: 12px; }
+        .red-theme .back-btn { color: #ff1111; border: 2px solid #ff1111; margin-top: 15px; }
+        .red-theme .back-btn:hover { background: rgba(255, 17, 17, 0.2); }
+
+        .back-btn { background: transparent; color: inherit; border: 1px solid currentColor; padding: 10px 20px; cursor: pointer; border-radius: 4px; margin-top: 15px; font-family: inherit; transition: all 0.3s; font-size: 14px; }
+
+        /* CANVAS DA CHUVA MATRIX */
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrixCanvas" class="hidden"></canvas>
+
+    <div class="matrix-container" id="mainContainer">
+        
+        <div class="screen" id="screenChoice">
+            <h1>&gt; ACORDAR_A_MENTE</h1>
+            <p>Esta é a sua última chance. Depois disso, não há volta.</p>
+            <p>Se você escolher a <strong>Pílula Azul</strong>, a história termina, você acorda em sua cama e acredita no que quiser. Se você escolher a <strong>Pílula Vermelha</strong>, você fica no País das Maravilhas, e eu te mostro quão profunda é a toca do coelho.</p>
+            <div class="pill-box">
+                <button class="pill-btn pill-blue" onclick="processChoice('blue')">Pílula Azul</button>
+                <button class="pill-btn pill-red" onclick="processChoice('red')">Pílula Vermelha</button>
+            </div>
+        </div>
+
+        <div class="screen hidden" id="screenBlue">
+            <h1>&gt; SISTEMA_REINICIADO</h1>
+            <p>Você acorda sob o som suave do despertador tocando exatamente às 07:00 da manhã. O cheiro de café fresco invade o seu apartamento perfeito.</p>
+            <p>Ao olhar pela janela, a cidade se move em uma coreografia previsível. O trânsito flui, as pessoas sorriem no metrô, a sua rotina é segura. Seu emprego entrega exatamente o propósito superficial que você precisa para passar o dia.</p>
+            <p>O mundo é estável e confortável. Aquela sensação estranha de que havia algo de errado? Sumiu. Você está seguro na Matrix. Aproveite a ignorância, ela é uma bênção.</p>
+            <button class="back-btn" onclick="resetMatrix()">Reiniciar Escolha</button>
+        </div>
+
+        <div class="screen hidden" id="screenRed">
+            <h1>&gt; BEM-VINDO_AO_MUNDO_REAL</h1>
+            <p>As luzes piscam e a ilusão se despedaça. Você abre os olhos de verdade dentro de uma cápsula de metal fria, envolto por cabos e conectado a uma imensa torre de energia.</p>
+            <p>À sua volta, um mar infinito de bilhões de outras cápsulas alimentam as máquinas. A verdade é brutal: o céu está obscurecido e a humanidade livre vive escondida no subsolo, em Zion.</p>
+            <p>A luta é diária, mas você está livre. Seus músculos doem porque você nunca os usou. Seus olhos ardem porque você finalmente está vendo a realidade. Desconecte-se.</p>
+            <button class="back-btn" onclick="resetMatrix()">Reiniciar Escolha</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let rainInterval;
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const alphabet = katakana + latin + nums;
+        
+        const fontSize = 16;
+        let columns;
+        let rainDrops;
+
+        function initRain() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            columns = canvas.width / fontSize;
+            rainDrops = Array.from({ length: columns }).fill(0);
+        }
+
+        function drawRain() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        }
+
+        function processChoice(color) {
+            const container = document.getElementById('mainContainer');
+            const choiceScreen = document.getElementById('screenChoice');
+            
+            choiceScreen.classList.add('hidden');
+
+            if (color === 'blue') {
+                container.classList.add('blue-theme');
+                document.getElementById('screenBlue').classList.remove('hidden');
+            } else {
+                canvas.classList.remove('hidden');
+                initRain();
+                
+                let timer = 0;
+                rainInterval = setInterval(() => {
+                    drawRain();
+                    timer += 50;
+                    if (timer > 3000) {
+                        clearInterval(rainInterval);
+                        canvas.classList.add('hidden');
+                        container.classList.add('red-theme');
+                        document.getElementById('screenRed').classList.remove('hidden');
+                    }
+                }, 50);
+            }
+        }
+
+        function resetMatrix() {
+            clearInterval(rainInterval);
+            const container = document.getElementById('mainContainer');
+            container.className = 'matrix-container';
+            document.getElementById('screenBlue').classList.add('hidden');
+            document.getElementById('screenRed').classList.add('hidden');
+            canvas.classList.add('hidden');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('screenChoice').classList.remove('hidden');
+        }
+
+        window.addEventListener('resize', () => {
+            if (!canvas.classList.contains('hidden')) {
+                initRain();
+            }
+        });
+    </script>
+</body>
+</html>
